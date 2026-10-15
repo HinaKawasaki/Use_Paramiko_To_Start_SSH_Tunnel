@@ -1,0 +1,36 @@
+# systemd unit for start_service.py.
+#
+# Adjust the paths and User/Group to your machine, make sure the log directory
+# exists (`StandardOutput=` does not create parent directories), then:
+#
+#   sudo cp ssh-tunnel.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now ssh-tunnel.service
+#
+# stdout carries routine INFO, stderr carries warnings and errors, so the two
+# logs can be watched separately.  Both append, so restarting does not throw
+# away the history.
+[Unit]
+Description=Start and maintain SSH tunnels.
+# network-online.target, not network.target: the tunnels need a usable address
+# and route, not merely "the network stack has been started".
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart=/home/hello/venvs/.para/bin/python3 /home/hello/CodeDocuments/ssh_tunnel/start_service.py
+# always: these tunnels are the network path for everything else on this host,
+# so come back after any exit.  An explicit `systemctl stop` still stops it.
+Restart=always
+RestartSec=5s
+User=hello
+Group=hello
+WorkingDirectory=/home/hello/CodeDocuments
+StandardOutput=append:/home/hello/my-programs-logs/ssh-tunnel/normal.log
+StandardError=append:/home/hello/my-programs-logs/ssh-tunnel/serious.log
+
+[Install]
+WantedBy=multi-user.target

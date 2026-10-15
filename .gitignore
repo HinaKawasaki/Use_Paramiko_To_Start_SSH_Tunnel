@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.vscode/
+*.log
+
+# Local configuration: real hosts, user names and private key paths
+conf.py
